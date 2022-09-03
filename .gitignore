@@ -5,7 +5,6 @@
 *.slo
 *.lo
 *.o
-*.obj
 
 # Precompiled Headers
 *.gch
@@ -30,3 +29,9 @@
 *.exe
 *.out
 *.app
+
+# VS Code config
+.vscode/
+bin/
+include/
+lib/
