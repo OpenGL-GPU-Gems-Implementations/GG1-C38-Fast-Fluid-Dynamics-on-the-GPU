@@ -1,9 +1,9 @@
 /**
- * @file fluid.fs
+ * @file difStep.fs
  * @author Eron Ristich (eron@ristich.com)
- * @brief Fragment shader for main execution of the fluid plane
+ * @brief Diffusion step
  * @version 0.1
- * @date 2022-09-03
+ * @date 2022-09-05
  */
 #version 430 core
 
@@ -27,8 +27,10 @@ uniform sampler2D qntTex; // quantity texture
 float delx = 1 / res.x;
 float dely = 1 / res.y;
 
-// include is not native GLSL, and was added via /util/glslInclude.h as a simple text replacement
+#include math/constants.fs
+#include math/math.fs
+#include math/diffusion.fs
 
 void main() {
-    fragColor = vec4(texture(tmpTex, uv).xy, 0, 1);
+    diffusion(uv, fragColor);
 }

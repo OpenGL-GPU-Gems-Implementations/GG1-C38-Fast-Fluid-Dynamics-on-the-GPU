@@ -18,7 +18,7 @@ kernel.o : util/kernel/kernel.h util/kernel/kernel.cpp
 handler.o : util/kernel/kernel.h util/handler.h util/handler.cpp
 	$(CC) $(CFLAGS) $(INC) util/handler.cpp
 
-GG1-C38-handler.o : objects/helper.h util/handler.h util/kernel/kernel.h GG1-C38-handler.h GG1-C38-handler.cpp
+GG1-C38-handler.o : objects/helper.h util/handler.h util/glslInclude.h util/kernel/kernel.h GG1-C38-handler.h GG1-C38-handler.cpp
 	$(CC) $(CFLAGS) $(INC) GG1-C38-handler.cpp
 
 main.o : objects/helper.h util/kernel/kernel.h util/handler.h GG1-C38-handler.h main.cpp

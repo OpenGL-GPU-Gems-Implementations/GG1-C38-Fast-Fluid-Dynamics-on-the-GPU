@@ -10,10 +10,12 @@
 #define GG1_C38_HANDLER_H
 
 #include <chrono>
+#include <cstdarg>
 #include <string>
 using std::string;
 
 #include "util/handler.h"
+#include "util/glslInclude.h"
 #include "objects/helper.h"
 
 class GG1_C38_Handler : public Handler {
@@ -38,7 +40,11 @@ class GG1_C38_Handler : public Handler {
         
         // scene objects
         /* ----- FLUID PLANE ----- */
-        Shader* fluid;
+        Shader *advStep, *frcStep, *difStep, *divStep, *prsStep, *grdStep;
+        GLuint velFBO, intFBO, tmpFBO, qntFBO, prsFBO;
+        GLuint velTex, intTex, tmpTex, qntTex, prsTex;
+
+        Shader* fluidShader;
 
 };
 
