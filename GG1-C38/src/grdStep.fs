@@ -19,7 +19,6 @@ uniform vec2 rel; // relative mouse movement (in pixels)
 uniform int mDown; // if 0 mouse is up, else, mouse is down
 
 uniform sampler2D velTex; // velocity texture
-uniform sampler2D intTex; // intermediate texture
 uniform sampler2D tmpTex; // temporary texture
 uniform sampler2D prsTex; // pressure texture
 uniform sampler2D qntTex; // quantity texture
@@ -31,5 +30,5 @@ float dely = 1 / res.y;
 #include math/math.fs
 
 void main() {
-    gradient(uv, fragColor, prsTex, intTex);
+    gradient(uv, fragColor, prsTex, velTex);
 }

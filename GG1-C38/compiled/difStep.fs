@@ -19,7 +19,6 @@ uniform vec2 rel; // relative mouse movement (in pixels)
 uniform int mDown; // if 0 mouse is up, else, mouse is down
 
 uniform sampler2D velTex; // velocity texture
-uniform sampler2D intTex; // intermediate texture
 uniform sampler2D tmpTex; // temporary texture
 uniform sampler2D prsTex; // pressure texture
 uniform sampler2D qntTex; // quantity texture
@@ -37,7 +36,7 @@ float dely = 1 / res.y;
 
 #define DENSITY 1
 #define VISCOSITY 1
-#define FORCEMULT 0.5
+#define FORCEMULT 0.3
 /**
  * @file math.fs
  * @author Eron Ristich (eron@ristich.com)
@@ -97,11 +96,10 @@ Solved using Jacobi iterations
 */
 
 void diffusion(vec2 coords, out vec4 xNew) {
+    // must iterate outside of the shader ~20 times for accuracy
     float alpha = delx * delx / (VISCOSITY * dt);
     float rbeta = 1 / (4 + alpha);
-    for (int i = 0; i < 20; i ++) {
-        jacobi(coords, xNew, alpha, rbeta, velTex, velTex);
-    }
+    jacobi(coords, xNew, alpha, rbeta, velTex, velTex);
 }
 
 void main() {

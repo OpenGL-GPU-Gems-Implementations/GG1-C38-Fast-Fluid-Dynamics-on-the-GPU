@@ -8,4 +8,4 @@
 
 #define DENSITY 1
 #define VISCOSITY 1
-#define FORCEMULT 0.5
+#define FORCEMULT 0.3

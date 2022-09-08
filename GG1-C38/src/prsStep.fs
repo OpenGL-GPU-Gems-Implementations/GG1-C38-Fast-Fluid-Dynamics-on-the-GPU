@@ -19,7 +19,6 @@ uniform vec2 rel; // relative mouse movement (in pixels)
 uniform int mDown; // if 0 mouse is up, else, mouse is down
 
 uniform sampler2D velTex; // velocity texture
-uniform sampler2D intTex; // intermediate texture
 uniform sampler2D tmpTex; // temporary texture
 uniform sampler2D prsTex; // pressure texture
 uniform sampler2D qntTex; // quantity texture
@@ -31,9 +30,8 @@ float dely = 1 / res.y;
 #include math/math.fs
 
 void main() {
+    // has to be iterated ~40 times on the cpu (texture has to be updated (ping ponged) each time)
     float alpha = -(delx*delx);
     float rbeta = 0.25;
-    for (int i = 0; i < 40; i ++) {
-        jacobi(uv, fragColor, alpha, rbeta, prsTex, tmpTex);
-    }
+    jacobi(uv, fragColor, alpha, rbeta, prsTex, tmpTex);
 }

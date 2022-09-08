@@ -15,9 +15,8 @@ Solved using Jacobi iterations
 */
 
 void diffusion(vec2 coords, out vec4 xNew) {
+    // must iterate outside of the shader ~20 times for accuracy
     float alpha = delx * delx / (VISCOSITY * dt);
     float rbeta = 1 / (4 + alpha);
-    for (int i = 0; i < 20; i ++) {
-        jacobi(coords, xNew, alpha, rbeta, velTex, velTex);
-    }
+    jacobi(coords, xNew, alpha, rbeta, velTex, velTex);
 }

@@ -19,7 +19,6 @@ uniform vec2 rel; // relative mouse movement (in pixels)
 uniform int mDown; // if 0 mouse is up, else, mouse is down
 
 uniform sampler2D velTex; // velocity texture
-uniform sampler2D intTex; // intermediate texture
 uniform sampler2D tmpTex; // temporary texture
 uniform sampler2D prsTex; // pressure texture
 uniform sampler2D qntTex; // quantity texture
@@ -30,5 +29,10 @@ float dely = 1 / res.y;
 // include is not native GLSL, and was added via /util/glslInclude.h as a simple text replacement
 
 void main() {
-    fragColor = vec4(texture(tmpTex, uv).xy, 0, 1);
+    vec4 v = texture(velTex, uv);
+    vec4 t = texture(tmpTex, uv);
+    vec4 p = texture(prsTex, uv);
+    vec4 q = texture(qntTex, uv);
+    fragColor = vec4(q.xyz, 1);
+    //fragColor = vec4(1, 0, 0, 1);
 }

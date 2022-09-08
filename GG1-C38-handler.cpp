@@ -11,6 +11,9 @@
 GG1_C38_Handler::GG1_C38_Handler() {
     wDown = false; aDown = false; sDown = false; dDown = false; spDown = false; shDown = false; enDown = false;
     mouseDown = false;
+
+    curPrs = NULL; curVel = NULL; curQnt = NULL;
+    nxtPrs = NULL; nxtVel = NULL; nxtQnt = NULL;
 }
 
 GG1_C38_Handler::~GG1_C38_Handler() {
@@ -104,30 +107,134 @@ void GG1_C38_Handler::objEventHandler() {
 	}
 }
 
-void setShaders(Shader* shader, int frame, float dt, glm::vec2 res, glm::vec2 mpos, glm::vec2 rel, int mDown) {
+void GG1_C38_Handler::setShader(Shader* shader) {
+    glm::vec2 res = glm::vec2(kernel->getRX(), kernel->getRY());
+    glm::vec2 mpos = glm::vec2(orgX, res.y - orgY);
+    glm::vec2 rel = glm::vec2(relX, -relY);
+    int mDown = mouseDown;
+
     shader->use();
+    
     shader->setInt("frame", frame);
     shader->setFloat("dt", dt);
     shader->setVec2("res", res);
     shader->setVec2("mpos", mpos);
     shader->setVec2("rel", rel);
     shader->setInt("mDown", mDown);
+
+    shader->setInt("velTex", 0);
+    shader->setInt("tmpTex", 1);
+    shader->setInt("prsTex", 2);
+    shader->setInt("qntTex", 3);
 }
 
-void useShaders(Shader* shader, GLuint FBO, GLuint velTex, GLuint intTex, GLuint tmpTex, GLuint prsTex, GLuint qntTex) {
-    glBindFramebuffer(GL_FRAMEBUFFER, FBO);
-    shader->use();
+void GG1_C38_Handler::advectionStep() {
+    setShader(advStep);
+    
+    glBindFramebuffer(GL_FRAMEBUFFER, nxtQnt->FBO);
+
+    glClear(GL_COLOR_BUFFER_BIT);
 
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, velTex);
+    glBindTexture(GL_TEXTURE_2D, curVel->TEX);
     glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, intTex);
+    glBindTexture(GL_TEXTURE_2D, tmp->TEX);
     glActiveTexture(GL_TEXTURE2);
-    glBindTexture(GL_TEXTURE_2D, tmpTex);
+    glBindTexture(GL_TEXTURE_2D, curPrs->TEX);
     glActiveTexture(GL_TEXTURE3);
-    glBindTexture(GL_TEXTURE_2D, prsTex);
-    glActiveTexture(GL_TEXTURE4);
-    glBindTexture(GL_TEXTURE_2D, qntTex);
+    glBindTexture(GL_TEXTURE_2D, curQnt->TEX);
+
+    glBegin(GL_POLYGON);
+		glVertex3f(-1, -1, 0);
+		glVertex3f(-1, 1, 0);
+		glVertex3f(1, 1, 0);
+		glVertex3f(1, -1, 0);
+	glEnd();
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    TexturePair* temp = nxtQnt;
+    nxtQnt = curQnt;
+    curQnt = temp;
+}
+
+void GG1_C38_Handler::forceStep() {
+    setShader(frcStep);
+    
+    glBindFramebuffer(GL_FRAMEBUFFER, nxtVel->FBO);
+
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, curVel->TEX);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, tmp->TEX);
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, curPrs->TEX);
+    glActiveTexture(GL_TEXTURE3);
+    glBindTexture(GL_TEXTURE_2D, curQnt->TEX);
+
+    glBegin(GL_POLYGON);
+		glVertex3f(-1, -1, 0);
+		glVertex3f(-1, 1, 0);
+		glVertex3f(1, 1, 0);
+		glVertex3f(1, -1, 0);
+	glEnd();
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    TexturePair* temp = nxtVel;
+    nxtVel = curVel;
+    curVel = temp;
+}
+
+void GG1_C38_Handler::diffusionStep() {
+    for (int i = 0; i < 20; i ++) {
+        setShader(difStep);
+        
+        glBindFramebuffer(GL_FRAMEBUFFER, nxtVel->FBO);
+
+        glClear(GL_COLOR_BUFFER_BIT);
+
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, curVel->TEX);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, tmp->TEX);
+        glActiveTexture(GL_TEXTURE2);
+        glBindTexture(GL_TEXTURE_2D, curPrs->TEX);
+        glActiveTexture(GL_TEXTURE3);
+        glBindTexture(GL_TEXTURE_2D, curQnt->TEX);
+
+        glBegin(GL_POLYGON);
+            glVertex3f(-1, -1, 0);
+            glVertex3f(-1, 1, 0);
+            glVertex3f(1, 1, 0);
+            glVertex3f(1, -1, 0);
+        glEnd();
+
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+        TexturePair* temp = nxtVel;
+        nxtVel = curVel;
+        curVel = temp;
+    }
+}
+
+void GG1_C38_Handler::divergenceStep() {
+    setShader(divStep);
+    
+    glBindFramebuffer(GL_FRAMEBUFFER, tmp->FBO);
+
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, curVel->TEX);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, tmp->TEX);
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, curPrs->TEX);
+    glActiveTexture(GL_TEXTURE3);
+    glBindTexture(GL_TEXTURE_2D, curQnt->TEX);
 
     glBegin(GL_POLYGON);
 		glVertex3f(-1, -1, 0);
@@ -139,35 +246,88 @@ void useShaders(Shader* shader, GLuint FBO, GLuint velTex, GLuint intTex, GLuint
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void GG1_C38_Handler::objRendererHandler() {
-    glm::vec2 res = glm::vec2(kernel->getRX(), kernel->getRY());
-    glm::vec2 mpos = glm::vec2(orgX, res.y - orgY);
-    glm::vec2 rel = glm::vec2(relX, -relY);
-    int mDown = mouseDown;
-    setShaders(advStep, frame, dt, res, mpos, rel, mDown);
-    setShaders(frcStep, frame, dt, res, mpos, rel, mDown);
-    setShaders(difStep, frame, dt, res, mpos, rel, mDown);
-    setShaders(divStep, frame, dt, res, mpos, rel, mDown);
-    setShaders(prsStep, frame, dt, res, mpos, rel, mDown);
-    setShaders(grdStep, frame, dt, res, mpos, rel, mDown);
-    
-    setShaders(fluidShader, frame, dt, res, mpos, rel, mDown);
+void GG1_C38_Handler::pressureStep() {
+    for (int i = 0; i < 40; i ++) {
+        setShader(prsStep);
+        
+        glBindFramebuffer(GL_FRAMEBUFFER, nxtPrs->FBO);
 
-    useShaders(advStep, qntFBO, velTex, intTex, tmpTex, prsTex, qntTex);
-    useShaders(frcStep, velFBO, velTex, intTex, tmpTex, prsTex, qntTex);
-    useShaders(difStep, intFBO, velTex, intTex, tmpTex, prsTex, qntTex);
-    useShaders(divStep, tmpFBO, velTex, intTex, tmpTex, prsTex, qntTex);
+        glClear(GL_COLOR_BUFFER_BIT);
 
-    glBindFramebuffer(GL_FRAMEBUFFER, prsFBO);
-    GLuint clearColor[4] = {0, 0, 0, 0};
-    glClearBufferuiv(GL_COLOR, 0, clearColor);
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, curVel->TEX);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, tmp->TEX);
+        glActiveTexture(GL_TEXTURE2);
+        glBindTexture(GL_TEXTURE_2D, curPrs->TEX);
+        glActiveTexture(GL_TEXTURE3);
+        glBindTexture(GL_TEXTURE_2D, curQnt->TEX);
+
+        glBegin(GL_POLYGON);
+            glVertex3f(-1, -1, 0);
+            glVertex3f(-1, 1, 0);
+            glVertex3f(1, 1, 0);
+            glVertex3f(1, -1, 0);
+        glEnd();
+
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+        TexturePair* temp = nxtPrs;
+        nxtPrs = curPrs;
+        curPrs = temp;
+    }
+}
+
+void GG1_C38_Handler::gradientStep() {
+    setShader(grdStep);
     
-    useShaders(prsStep, prsFBO, velTex, intTex, tmpTex, prsTex, qntTex);
-    //useShaders(grdStep, velFBO, velTex, intTex, tmpTex, prsTex, qntTex);
+    glBindFramebuffer(GL_FRAMEBUFFER, nxtVel->FBO);
 
     glClear(GL_COLOR_BUFFER_BIT);
-    fluidShader->use();
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, curVel->TEX);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, tmp->TEX);
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, curPrs->TEX);
+    glActiveTexture(GL_TEXTURE3);
+    glBindTexture(GL_TEXTURE_2D, curQnt->TEX);
+
+    glBegin(GL_POLYGON);
+		glVertex3f(-1, -1, 0);
+		glVertex3f(-1, 1, 0);
+		glVertex3f(1, 1, 0);
+		glVertex3f(1, -1, 0);
+	glEnd();
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    TexturePair* temp = nxtVel;
+    nxtVel = curVel;
+    curVel = temp;
+}
+
+void GG1_C38_Handler::objRendererHandler() {
+    advectionStep();
+    forceStep();
+    diffusionStep();
+    divergenceStep();
+    pressureStep();
+    gradientStep();
+
+    glClear(GL_COLOR_BUFFER_BIT);
+    setShader(fluidShader);
+    
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, curVel->TEX);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, tmp->TEX);
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, curPrs->TEX);
+    glActiveTexture(GL_TEXTURE3);
+    glBindTexture(GL_TEXTURE_2D, curQnt->TEX);
+    
     glBegin(GL_POLYGON);
 		glVertex3f(-1, -1, 0);
 		glVertex3f(-1, 1, 0);
@@ -190,41 +350,28 @@ void GG1_C38_Handler::objUpdateHandler() {
     SDL_SetWindowTitle(kernel->getWindow(), atitle.c_str());
 }
 
-void setupFBO(GLuint& FBO, GLuint& TEX, int rx, int ry) {
-    glGenFramebuffers(1, &FBO);
-
-    glGenTextures(1, &TEX);
-    glBindTexture(GL_TEXTURE_2D, TEX);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, rx, ry, 0, GL_RGBA, GL_FLOAT, NULL);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    
-    glBindFramebuffer(GL_FRAMEBUFFER, FBO);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, TEX, 0);
-    glDrawBuffer(GL_COLOR_ATTACHMENT0);
-    GLuint clearColor[4] = {0, 0, 0, 0};
-    glClearBufferuiv(GL_COLOR, 0, clearColor);
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-}
-
 void GG1_C38_Handler::objPreLoopStep() {
     lastT = std::chrono::steady_clock::now();
     
     // sets the clear color to black
-    glClearColor(0.0f, 1.0f, 0.0f, 1.0f);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
     // setup FBO's
     int rx = kernel->getRX();
     int ry = kernel->getRY();
-    setupFBO(velFBO, velTex, rx, ry);
-    setupFBO(intFBO, intTex, rx, ry);
-    setupFBO(tmpFBO, tmpTex, rx, ry);
-    setupFBO(qntFBO, qntTex, rx, ry);
-    setupFBO(prsFBO, prsTex, rx, ry);
+    vel1 = new TexturePair(rx, ry);
+    vel2 = new TexturePair(rx, ry);
+    tmp = new TexturePair(rx, ry);
+    qnt1 = new TexturePair(rx, ry);
+    qnt2 = new TexturePair(rx, ry);
+    prs1 = new TexturePair(rx, ry);
+    prs2 = new TexturePair(rx, ry);
 
-    // setup fluid shader
+    curVel = vel1; nxtVel = vel2;
+    curQnt = qnt1; nxtQnt = qnt2;
+    curPrs = prs1; nxtPrs = prs2;
+
+    // setup fluid shaders
     string compilePath = "GG1-C38/compiled";
     string shaderVS = compileGLSL("GG1-C38/src/fluid.vs", compilePath);
     string shaderFS = compileGLSL("GG1-C38/src/fluid.fs", compilePath);

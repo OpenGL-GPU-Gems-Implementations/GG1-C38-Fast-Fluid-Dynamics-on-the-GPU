@@ -7,7 +7,7 @@
  */
 #version 430 core
 
-out vec4 fragColor;
+layout (location = 0) out vec4 fragColor;
 
 varying vec2 uv;
 
@@ -19,7 +19,6 @@ uniform vec2 rel; // relative mouse movement (in pixels)
 uniform int mDown; // if 0 mouse is up, else, mouse is down
 
 uniform sampler2D velTex; // velocity texture
-uniform sampler2D intTex; // intermediate texture
 uniform sampler2D tmpTex; // temporary texture
 uniform sampler2D prsTex; // pressure texture
 uniform sampler2D qntTex; // quantity texture
@@ -33,7 +32,7 @@ float dely = 1 / res.y;
 void main() {
     vec4 temp = vec4(0);
     if (mDown != 0) {
-        applyForce(uv, temp, 1);
+        applyForce(uv, temp, 0.5);
     }
     fragColor = texture(velTex, uv) + temp;
 }

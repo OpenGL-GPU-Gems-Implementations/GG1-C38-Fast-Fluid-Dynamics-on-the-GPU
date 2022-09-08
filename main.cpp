@@ -17,7 +17,7 @@ using std::string;
 #include "objects/helper.h"
 
 int main(int argc, char* argv[]) {
-    Kernel* kernel = new Kernel(string("Fluid"), 500, 500);
+    Kernel* kernel = new Kernel(string("Fluid"), 800, 800);
     GG1_C38_Handler* handler = new GG1_C38_Handler();
 
     Handler::registerKernel(kernel);

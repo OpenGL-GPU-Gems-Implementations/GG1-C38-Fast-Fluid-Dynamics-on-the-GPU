@@ -12,5 +12,6 @@ void applyForce(vec2 coords, out vec4 force, float r) {
 
     vec2 F = relMmt * FORCEMULT;
 
-    force = vec4(F*1/distance(coords, orgPos), 0, 0);//vec4(F*exp(pow(distance(coords, orgPos),2) / r) * dt, 0, 0);
+    force = vec4(F*1/distance(coords, orgPos), 0, 0);
+    //force = vec4(F*exp(pow(distance(coords, orgPos),2) / r) * dt, 0, 0);
 }
