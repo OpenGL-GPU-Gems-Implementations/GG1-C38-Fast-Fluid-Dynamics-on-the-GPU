@@ -6,14 +6,7 @@ From [GPU Gems book 1, part 6, chapter 38.](https://developer.nvidia.com/gpugems
 * 2D Stam stable fluids
 
 ## Visuals
-![Fluids](https://user-images.githubusercontent.com/42471346/189209650-902c2869-6dde-48ab-a108-0a0549eb9ffb.gif)
-
-
-## Concepts Reimagined
-* TBD
-
-## Concepts explored/reimplemented in other repositories
-* TBD
+![Fluids](https://user-images.githubusercontent.com/42471346/235991779-32aa005f-c6b0-44b8-9a7b-aafe52ef9eb9.gif)
 
 ## Compilation and installation instructions
 The graphics for this engine are handled using OpenGL, and the following instructions are for setting up the code in Windows. 
